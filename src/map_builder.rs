@@ -1,5 +1,5 @@
 #![allow(dead_code, unused_variables)]
-use crate::{map, prelude::*};
+use crate::prelude::*;
 
 pub const NUM_ROOMS: usize = 20;
 
@@ -27,10 +27,16 @@ impl MapBuilder {
     fn fill(&mut self, tile: TileType) {
       self.map.tiles.iter_mut().for_each(|t| *t = tile);
     }
+
     fn build_random_rooms(&mut self, rand: &mut RandomNumberGenerator) {
       while self.rooms.len() < NUM_ROOMS {
         // Generate random rooms.
-          let rooms = Rect::with_size(rand.range(1, SCREEN_WIDTH - 10), rand.range(1, SCREEN_HEIGHT - 10), rand.range(2, 10), rand.range(2, 10));
+          let rooms = Rect::with_size(
+            rand.range(1, SCREEN_WIDTH - 10),
+            rand.range(1, SCREEN_HEIGHT - 10),
+            rand.range(2, 10), 
+            rand.range(2, 10)
+          );
 
           let mut overlap  = false;
           for room in self.rooms.iter() {
@@ -51,16 +57,25 @@ impl MapBuilder {
           self.rooms.push(rooms);
       }
     }
-    fn apply_vertical_tunnel(&mut self, x: i32, y1: i32, y2: i32) {
-      use std::cmp::{min, max};
 
+    fn apply_vertical_tunnel(&mut self, y1: i32, y2: i32, x: i32) {
+      use std::cmp::{min, max};
       for y in min(y1, y2) ..= max(y1, y2) {
         if let Some(idx) = self.map.try_idx(Point::new(x, y)) {
           self.map.tiles[idx as usize] = TileType::Floor;
         } 
       }
     }
-// TODO: fix corridors.
+
+    fn apply_horizontal_tunnel(&mut self, x1: i32, x2: i32, y: i32) {
+      use std::cmp::{min, max};
+      for x in min(x1, x2) ..= max(x1, x2) {
+        if let Some(idx) = self.map.try_idx(Point::new(x, y)) {
+          self.map.tiles[idx as usize] = TileType::Floor
+        }
+      }
+    }
+    
     fn build_corridors(&mut self, rand: &mut RandomNumberGenerator) {
       let mut rooms = self.rooms.clone();
       // Sorting rooms by their center points before allocating corridors. This helps to avoid long corridors that almost certainly overlap with other rooms.
@@ -71,11 +86,11 @@ impl MapBuilder {
         let new = room.center();
 
         if rand.range(0, 2) == 1 {
-          self.apply_vertical_tunnel(prev.x, new.x, prev.y);
+          self.apply_horizontal_tunnel(prev.x, new.x, prev.y);
           self.apply_vertical_tunnel(prev.y, new.y, prev.x);
         } else {
             self.apply_vertical_tunnel(prev.y, new.y, prev.x);
-            self.apply_vertical_tunnel(prev.x, new.x, new.y);
+            self.apply_horizontal_tunnel(prev.x, new.x, new.y);
         }
       }
     }
