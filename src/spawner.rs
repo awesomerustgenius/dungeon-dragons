@@ -14,6 +14,7 @@ pub fn spawn_player(ecs: &mut World, pos: Point) {
             current: 10,
             max: 10,
         },
+        FieldOfView::new(8),
     ));
 }
 
@@ -37,6 +38,7 @@ pub fn spawn_monster(ecs: &mut World, rand: &mut RandomNumberGenerator, pos: Poi
             max: hp,
         },
         Name(name),
+        FieldOfView::new(6),
     ));
 }
 
@@ -50,13 +52,13 @@ fn orc() -> (i32, String, FontCharType) {
 
 pub fn spawn_amulet_of_yala(ecs: &mut World, pos: Point) {
     ecs.push((
-      Item,
-      AmuletOfYala,
-      pos,
-      Render {
-        color: ColorPair::new(WHITE, BLACK),
-        glyph: to_cp437('|'),
-      },
-      Name("Amulet of Yala".to_string())
+        Item,
+        AmuletOfYala,
+        pos,
+        Render {
+            color: ColorPair::new(WHITE, BLACK),
+            glyph: to_cp437('|'),
+        },
+        Name("Amulet of Yala".to_string()),
     ));
 }
